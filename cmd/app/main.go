@@ -10,19 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Puker228/user_echo/internal/database/postgresql"
+	"github.com/Puker228/user_echo/internal/handler"
+	"github.com/Puker228/user_echo/internal/repository/postgresql"
+	"github.com/Puker228/user_echo/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
-
-type UserStats struct {
-	Android_version string `json:"android_version"`
-	Device_model    string `json:"device_model"`
-	Manufacturer    string `json:"manufacturer"`
-	Total_ram_gb    int    `json:"total_ram_gb"`
-	App_version     string `json:"app_version"`
-}
 
 func main() {
 	cfg := pq.Config{
@@ -42,37 +36,20 @@ func main() {
 	db := sql.OpenDB(c)
 	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatal(err)
 	}
 
-	err = postgresql.InitDB(db)
-	if err != nil {
+	if err = postgresql.InitDB(db); err != nil {
 		log.Fatal(err)
 	}
+
+	repo := postgresql.NewStatsRepository(db)
+	uc := usecase.NewStatsUseCase(repo)
+	h := handler.NewStatsHandler(uc)
 
 	router := gin.Default()
-	router.POST("/stats", func(c *gin.Context) {
-		var stats UserStats
-
-		if err := c.ShouldBindJSON(&stats); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		_, err := db.ExecContext(c.Request.Context(),
-			`INSERT INTO users (android_version, device_model, manufacturer, total_ram_gb, app_version)
-			 VALUES ($1, $2, $3, $4, $5)`,
-			stats.Android_version, stats.Device_model, stats.Manufacturer, stats.Total_ram_gb, stats.App_version,
-		)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"status": "saved"})
-	})
+	h.RegisterRoutes(router)
 
 	srv := &http.Server{
 		Addr:    ":8080",
