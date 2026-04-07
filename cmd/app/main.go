@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Puker228/user_echo/internal/database/postgresql"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
@@ -29,6 +30,11 @@ func main() {
 	defer db.Close()
 
 	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = postgresql.InitDB(db)
 	if err != nil {
 		log.Fatal(err)
 	}
