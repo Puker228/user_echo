@@ -6,7 +6,7 @@ func InitDB(db *sql.DB) error {
 	sqlStmt := `
 create table if not exists users
 (
-    id              integer not null primary key,
+    id              serial  not null primary key,
     android_version text    null,
     device_model    text    null,
     manufacturer    text    null,
