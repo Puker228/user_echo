@@ -15,13 +15,12 @@ import (
 	"github.com/Puker228/user_echo/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 func main() {
 	cfg := pq.Config{
 		Host:     "localhost",
-		Port:     5433,
+		Port:     5432,
 		User:     "postgres",
 		Database: "postgres",
 		Password: "postgres",

@@ -1,4 +1,4 @@
-FROM golang:1.25.5-alpine AS builder
+FROM golang:1.26.1-alpine AS builder
 
 ENV CGO_ENABLED=1
 RUN apk add --no-cache gcc musl-dev
